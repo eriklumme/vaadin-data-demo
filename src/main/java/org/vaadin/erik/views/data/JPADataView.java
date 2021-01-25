@@ -15,14 +15,14 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 @PageTitle("Data: JPA")
-public class JPARepositoryView extends AbstractDataView<Person> {
+public class JPADataView extends AbstractDataView<Person> {
 
     private final TransactionTemplate transactionTemplate;
 
     @PersistenceContext
     private EntityManager em;
 
-    public JPARepositoryView(PlatformTransactionManager platformTransactionManager) {
+    public JPADataView(PlatformTransactionManager platformTransactionManager) {
         transactionTemplate = new TransactionTemplate(platformTransactionManager);
     }
 
