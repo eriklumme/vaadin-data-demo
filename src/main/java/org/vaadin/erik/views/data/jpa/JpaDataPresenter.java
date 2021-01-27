@@ -1,10 +1,11 @@
-package org.vaadin.erik.views.data;
+package org.vaadin.erik.views.data.jpa;
 
 import com.vaadin.flow.data.provider.Query;
-import com.vaadin.flow.router.PageTitle;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.vaadin.erik.data.entity.Person;
+import org.vaadin.erik.views.data.DataPresenter;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -14,25 +15,25 @@ import javax.persistence.criteria.Root;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@PageTitle("Data: JPA")
-public class JpaDataView extends AbstractDataView<Person> {
+@Service
+public class JpaDataPresenter implements DataPresenter<Person> {
 
     private final TransactionTemplate transactionTemplate;
 
     @PersistenceContext
     private EntityManager em;
 
-    public JpaDataView(PlatformTransactionManager platformTransactionManager) {
+    public JpaDataPresenter(PlatformTransactionManager platformTransactionManager) {
         transactionTemplate = new TransactionTemplate(platformTransactionManager);
     }
 
     @Override
-    Class<Person> getImplementationClass() {
+    public Class<Person> getImplementationClass() {
         return Person.class;
     }
 
     @Override
-    Stream<Person> fetch(Query<Person, Void> query) {
+    public Stream<Person> fetch(Query<Person, Void> query) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Person> cq = cb.createQuery(Person.class);
         Root<Person> root = cq.from(Person.class);
@@ -44,22 +45,22 @@ public class JpaDataView extends AbstractDataView<Person> {
     }
 
     @Override
-    Optional<Person> reload(Person person) {
+    public Optional<Person> reload(Person person) {
         return Optional.ofNullable(em.find(Person.class, person.getId()));
     }
 
     @Override
-    void update(Person person) {
+    public void updateOrInsert(Person person) {
         transactionTemplate.executeWithoutResult(status -> em.merge(person));
     }
 
     @Override
-    Person instantiateEmpty() {
+    public Person instantiateEmpty() {
         return new Person();
     }
 
     @Override
-    boolean isImportant(Person person) {
+    public boolean isImportant(Person person) {
         return person.isImportant();
     }
 }

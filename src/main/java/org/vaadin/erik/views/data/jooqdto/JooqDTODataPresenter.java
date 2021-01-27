@@ -1,30 +1,31 @@
-package org.vaadin.erik.views.data;
+package org.vaadin.erik.views.data.jooqdto;
 
 import com.vaadin.flow.data.provider.Query;
-import com.vaadin.flow.router.PageTitle;
 import org.jooq.DSLContext;
+import org.springframework.stereotype.Service;
 import org.vaadin.erik.data.dto.PersonDTO;
 import org.vaadin.erik.data.generated.jooq.public_.tables.Person;
+import org.vaadin.erik.views.data.DataPresenter;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@PageTitle("Data: Jooq DTO")
-public class JooqDTODataView extends AbstractDataView<PersonDTO> {
+@Service
+public class JooqDTODataPresenter implements DataPresenter<PersonDTO> {
 
     private final DSLContext dslContext;
 
-    public JooqDTODataView(DSLContext dslContext) {
+    public JooqDTODataPresenter(DSLContext dslContext) {
         this.dslContext = dslContext;
     }
 
     @Override
-    Class<PersonDTO> getImplementationClass() {
+    public Class<PersonDTO> getImplementationClass() {
         return PersonDTO.class;
     }
 
     @Override
-    Stream<PersonDTO> fetch(Query<PersonDTO, Void> query) {
+    public Stream<PersonDTO> fetch(Query<PersonDTO, Void> query) {
         return dslContext.select()
                 .from(Person.PERSON)
                 .offset(query.getOffset())
@@ -33,7 +34,7 @@ public class JooqDTODataView extends AbstractDataView<PersonDTO> {
     }
 
     @Override
-    Optional<PersonDTO> reload(PersonDTO person) {
+    public Optional<PersonDTO> reload(PersonDTO person) {
         return dslContext.select()
                 .from(Person.PERSON)
                 .where(Person.PERSON.ID.eq(person.getId()))
@@ -41,17 +42,22 @@ public class JooqDTODataView extends AbstractDataView<PersonDTO> {
     }
 
     @Override
-    void update(PersonDTO person) {
-        dslContext.newRecord(Person.PERSON, person).update();
+    public void updateOrInsert(PersonDTO person) {
+        if (person.getId() == null) {
+            dslContext.newRecord(Person.PERSON, person).insert();
+        } else {
+            dslContext.newRecord(Person.PERSON, person).update();
+        }
     }
 
     @Override
-    PersonDTO instantiateEmpty() {
+    public PersonDTO instantiateEmpty() {
         return new PersonDTO();
     }
 
     @Override
-    boolean isImportant(PersonDTO person) {
+    public boolean isImportant(PersonDTO person) {
         return person.isImportant();
     }
+
 }

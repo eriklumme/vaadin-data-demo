@@ -18,11 +18,11 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.tabs.TabsVariant;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.RouterLink;
-import org.vaadin.erik.views.data.JpaDataView;
-import org.vaadin.erik.views.data.JdbcDataView;
-import org.vaadin.erik.views.data.JooqDTODataView;
-import org.vaadin.erik.views.data.JooqRecordDataView;
-import org.vaadin.erik.views.data.SpringRepositoryDataView;
+import org.vaadin.erik.views.data.jpa.JpaDataView;
+import org.vaadin.erik.views.data.jdbc.JdbcDataView;
+import org.vaadin.erik.views.data.jooqdto.JooqDTODataView;
+import org.vaadin.erik.views.data.jooqrecord.JooqRecordDataView;
+import org.vaadin.erik.views.data.repository.RepositoryDataView;
 
 /**
  * The main view is a top-level placeholder for other views.
@@ -82,7 +82,7 @@ public class MainView extends AppLayout {
 
     private Component[] createMenuItems() {
         return new Tab[]{
-                createTab("Repository", SpringRepositoryDataView.class),
+                createTab("Repository", RepositoryDataView.class),
                 createTab("JPA", JpaDataView.class),
                 createTab("Jooq DTO", JooqDTODataView.class),
                 createTab("Jooq Record", JooqRecordDataView.class),

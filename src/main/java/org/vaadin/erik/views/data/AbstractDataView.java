@@ -17,20 +17,18 @@ import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
-import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.router.Route;
 import org.vaadin.erik.views.main.MainView;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @SuppressWarnings("FieldCanBeLocal")
 @Route(layout = MainView.class)
 @CssImport("./styles/views/data-view.css")
 public abstract class AbstractDataView<T> extends Div {
 
-    private final Grid<T> grid = new Grid<>(getImplementationClass(), false);
+    private final Grid<T> grid;
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
@@ -46,7 +44,9 @@ public abstract class AbstractDataView<T> extends Div {
     private TextField occupation;
     private Checkbox important;
 
-    public AbstractDataView() {
+    public AbstractDataView(DataPresenter<T> presenter) {
+        grid = new Grid<>(presenter.getImplementationClass(), false);
+
         setId("data-view");
         // Create UI
         SplitLayout splitLayout = new SplitLayout();
@@ -66,17 +66,17 @@ public abstract class AbstractDataView<T> extends Div {
         grid.addColumn("occupation").setAutoWidth(true);
         TemplateRenderer<T> importantRenderer = TemplateRenderer.<T>of(
                 "<iron-icon hidden='[[!item.important]]' icon='vaadin:check' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: var(--lumo-primary-text-color);'></iron-icon><iron-icon hidden='[[item.important]]' icon='vaadin:minus' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: var(--lumo-disabled-text-color);'></iron-icon>")
-                .withProperty("important", this::isImportant);
+                .withProperty("important", presenter::isImportant);
         grid.addColumn(importantRenderer).setHeader("Important").setAutoWidth(true);
 
-        grid.setItems(this::fetch);
+        grid.setItems(presenter::fetch);
         grid.addThemeVariants(GridVariant.LUMO_NO_BORDER);
         grid.setHeightFull();
 
         // when a row is selected or deselected, populate form
         grid.asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                Optional<T> personFromBackend = reload(event.getValue());
+                Optional<T> personFromBackend = presenter.reload(event.getValue());
                 // when a row is selected but the data is no longer available, refresh grid
                 if (personFromBackend.isPresent()) {
                     populateForm(personFromBackend.get());
@@ -89,7 +89,7 @@ public abstract class AbstractDataView<T> extends Div {
         });
 
         // Configure Form
-        binder = new BeanValidationBinder<>(getImplementationClass());
+        binder = new BeanValidationBinder<>(presenter.getImplementationClass());
 
         // Bind fields. This where you'd define e.g. validation rules
 
@@ -103,11 +103,11 @@ public abstract class AbstractDataView<T> extends Div {
         save.addClickListener(e -> {
             try {
                 if (this.person == null) {
-                    this.person = instantiateEmpty();
+                    this.person = presenter.instantiateEmpty();
                 }
                 binder.writeBean(this.person);
 
-                update(this.person);
+                presenter.updateOrInsert(this.person);
                 clearForm();
                 refreshGrid();
                 Notification.show("Person details stored.");
@@ -180,15 +180,4 @@ public abstract class AbstractDataView<T> extends Div {
         binder.readBean(this.person);
     }
 
-    abstract Class<T> getImplementationClass();
-
-    abstract Stream<T> fetch(Query<T, Void> query);
-
-    abstract Optional<T> reload(T person);
-
-    abstract void update(T person);
-
-    abstract T instantiateEmpty();
-
-    abstract boolean isImportant(T person);
 }

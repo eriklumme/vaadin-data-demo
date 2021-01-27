@@ -1,56 +1,55 @@
-package org.vaadin.erik.views.data;
+package org.vaadin.erik.views.data.repository;
 
 import com.vaadin.flow.data.provider.Query;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
 import org.vaadin.erik.data.entity.Person;
 import org.vaadin.erik.data.service.PersonService;
-import org.vaadin.erik.views.main.MainView;
+import org.vaadin.erik.views.data.DataPresenter;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@PageTitle("Data: Spring Repository")
-@RouteAlias(value = "", layout = MainView.class)
-public class SpringRepositoryDataView extends AbstractDataView<Person> {
+@Service
+public class RepositoryDataPresenter implements DataPresenter<Person> {
 
     private final PersonService personService;
 
-    public SpringRepositoryDataView(PersonService personService) {
+    public RepositoryDataPresenter(PersonService personService) {
         this.personService = personService;
     }
 
     @Override
-    Class<Person> getImplementationClass() {
+    public Class<Person> getImplementationClass() {
         return Person.class;
     }
 
     @Override
-    Stream<Person> fetch(Query<Person, Void> query) {
+    public Stream<Person> fetch(Query<Person, Void> query) {
         return personService.list(
                 PageRequest.of(query.getPage(), query.getPageSize(), VaadinSpringDataHelpers.toSpringDataSort(query)))
                 .stream();
     }
 
     @Override
-    Optional<Person> reload(Person person) {
+    public Optional<Person> reload(Person person) {
         return personService.get(person.getId());
     }
 
     @Override
-    void update(Person person) {
+    public void updateOrInsert(Person person) {
         personService.update(person);
     }
 
     @Override
-    Person instantiateEmpty() {
+    public Person instantiateEmpty() {
         return new Person();
     }
 
     @Override
-    boolean isImportant(Person person) {
+    public boolean isImportant(Person person) {
         return person.isImportant();
     }
+
 }
