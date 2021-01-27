@@ -20,7 +20,6 @@ import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.router.Route;
-import org.vaadin.erik.data.IPerson;
 import org.vaadin.erik.views.main.MainView;
 
 import java.util.Optional;
@@ -29,7 +28,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("FieldCanBeLocal")
 @Route(layout = MainView.class)
 @CssImport("./styles/views/data-view.css")
-public abstract class AbstractDataView<T extends IPerson> extends Div {
+public abstract class AbstractDataView<T> extends Div {
 
     private final Grid<T> grid = new Grid<>(getImplementationClass(), false);
 
@@ -67,7 +66,7 @@ public abstract class AbstractDataView<T extends IPerson> extends Div {
         grid.addColumn("occupation").setAutoWidth(true);
         TemplateRenderer<T> importantRenderer = TemplateRenderer.<T>of(
                 "<iron-icon hidden='[[!item.important]]' icon='vaadin:check' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: var(--lumo-primary-text-color);'></iron-icon><iron-icon hidden='[[item.important]]' icon='vaadin:minus' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: var(--lumo-disabled-text-color);'></iron-icon>")
-                .withProperty("important", IPerson::isImportant);
+                .withProperty("important", this::isImportant);
         grid.addColumn(importantRenderer).setHeader("Important").setAutoWidth(true);
 
         grid.setItems(this::fetch);
@@ -77,7 +76,7 @@ public abstract class AbstractDataView<T extends IPerson> extends Div {
         // when a row is selected or deselected, populate form
         grid.asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                Optional<T> personFromBackend = get(event.getValue().getId());
+                Optional<T> personFromBackend = reload(event.getValue());
                 // when a row is selected but the data is no longer available, refresh grid
                 if (personFromBackend.isPresent()) {
                     populateForm(personFromBackend.get());
@@ -185,9 +184,11 @@ public abstract class AbstractDataView<T extends IPerson> extends Div {
 
     abstract Stream<T> fetch(Query<T, Void> query);
 
-    abstract Optional<T> get(Integer id);
+    abstract Optional<T> reload(T person);
 
     abstract void update(T person);
 
     abstract T instantiateEmpty();
+
+    abstract boolean isImportant(T person);
 }

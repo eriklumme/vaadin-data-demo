@@ -20,6 +20,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.RouterLink;
 import org.vaadin.erik.views.data.JPADataView;
 import org.vaadin.erik.views.data.JooqDTODataView;
+import org.vaadin.erik.views.data.JooqRecordDataView;
 import org.vaadin.erik.views.data.SpringRepositoryDataView;
 
 /**
@@ -82,7 +83,8 @@ public class MainView extends AppLayout {
         return new Tab[]{
                 createTab("Spring Repository", SpringRepositoryDataView.class),
                 createTab("JPA", JPADataView.class),
-                createTab("Jooq DTO", JooqDTODataView.class)
+                createTab("Jooq DTO", JooqDTODataView.class),
+                createTab("Jooq Record", JooqRecordDataView.class)
         };
     }
 

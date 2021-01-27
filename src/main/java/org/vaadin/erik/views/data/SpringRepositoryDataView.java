@@ -35,8 +35,8 @@ public class SpringRepositoryDataView extends AbstractDataView<Person> {
     }
 
     @Override
-    Optional<Person> get(Integer id) {
-        return personService.get(id);
+    Optional<Person> reload(Person person) {
+        return personService.get(person.getId());
     }
 
     @Override
@@ -47,5 +47,10 @@ public class SpringRepositoryDataView extends AbstractDataView<Person> {
     @Override
     Person instantiateEmpty() {
         return new Person();
+    }
+
+    @Override
+    boolean isImportant(Person person) {
+        return person.isImportant();
     }
 }

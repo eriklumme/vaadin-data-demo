@@ -2,13 +2,12 @@ package org.vaadin.erik.data.dto;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.vaadin.erik.data.IPerson;
 
 import java.time.LocalDate;
 
 @Getter
 @Setter
-public class PersonDTO implements IPerson {
+public class PersonDTO {
 
     private Integer id;
     private String firstName;

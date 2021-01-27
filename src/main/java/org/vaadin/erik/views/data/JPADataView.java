@@ -44,8 +44,8 @@ public class JPADataView extends AbstractDataView<Person> {
     }
 
     @Override
-    Optional<Person> get(Integer id) {
-        return Optional.ofNullable(em.find(Person.class, id));
+    Optional<Person> reload(Person person) {
+        return Optional.ofNullable(em.find(Person.class, person.getId()));
     }
 
     @Override
@@ -56,5 +56,10 @@ public class JPADataView extends AbstractDataView<Person> {
     @Override
     Person instantiateEmpty() {
         return new Person();
+    }
+
+    @Override
+    boolean isImportant(Person person) {
+        return person.isImportant();
     }
 }

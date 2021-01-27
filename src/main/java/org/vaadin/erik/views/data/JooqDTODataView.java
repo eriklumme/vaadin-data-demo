@@ -33,10 +33,10 @@ public class JooqDTODataView extends AbstractDataView<PersonDTO> {
     }
 
     @Override
-    Optional<PersonDTO> get(Integer id) {
+    Optional<PersonDTO> reload(PersonDTO person) {
         return dslContext.select()
                 .from(Person.PERSON)
-                .where(Person.PERSON.ID.eq(id))
+                .where(Person.PERSON.ID.eq(person.getId()))
                 .fetchOptionalInto(PersonDTO.class);
     }
 
@@ -48,5 +48,10 @@ public class JooqDTODataView extends AbstractDataView<PersonDTO> {
     @Override
     PersonDTO instantiateEmpty() {
         return new PersonDTO();
+    }
+
+    @Override
+    boolean isImportant(PersonDTO person) {
+        return person.isImportant();
     }
 }

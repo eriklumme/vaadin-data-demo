@@ -5,14 +5,13 @@ import javax.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 import org.vaadin.erik.data.AbstractEntity;
-import org.vaadin.erik.data.IPerson;
 
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
-public class Person extends AbstractEntity implements IPerson {
+public class Person extends AbstractEntity {
 
     private String firstName;
     private String lastName;
