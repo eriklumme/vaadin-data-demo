@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DataViewIT {
 
-    private static final String[] MENU_ITEMS = new String[]{ "Spring Repository", "JPA", "Jooq DTO", "Jooq Record" };
+    private static final String[] MENU_ITEMS = new String[]{ "Repository", "JPA", "Jooq DTO", "Jooq Record", "JDBC" };
 
     private static final String FIRST_NAME = "Bob";
     private static final String LAST_NAME = "McBobson";

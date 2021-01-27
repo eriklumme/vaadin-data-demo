@@ -18,7 +18,8 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.tabs.TabsVariant;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.RouterLink;
-import org.vaadin.erik.views.data.JPADataView;
+import org.vaadin.erik.views.data.JpaDataView;
+import org.vaadin.erik.views.data.JdbcDataView;
 import org.vaadin.erik.views.data.JooqDTODataView;
 import org.vaadin.erik.views.data.JooqRecordDataView;
 import org.vaadin.erik.views.data.SpringRepositoryDataView;
@@ -81,10 +82,11 @@ public class MainView extends AppLayout {
 
     private Component[] createMenuItems() {
         return new Tab[]{
-                createTab("Spring Repository", SpringRepositoryDataView.class),
-                createTab("JPA", JPADataView.class),
+                createTab("Repository", SpringRepositoryDataView.class),
+                createTab("JPA", JpaDataView.class),
                 createTab("Jooq DTO", JooqDTODataView.class),
-                createTab("Jooq Record", JooqRecordDataView.class)
+                createTab("Jooq Record", JooqRecordDataView.class),
+                createTab("JDBC", JdbcDataView.class)
         };
     }
 
