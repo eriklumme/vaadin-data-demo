@@ -1,18 +1,20 @@
 package org.vaadin.erik.views.data.jdbc;
 
 import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.SortDirection;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.vaadin.erik.data.dto.PersonDTO;
 import org.vaadin.erik.views.data.DataPresenter;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -36,8 +38,8 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
                 .addValue("offset", query.getOffset())
                 .addValue("limit", query.getLimit());
         return jdbcTemplate.query(
-                "SELECT id, first_name, last_name, email, phone, date_of_birth, occupation, important " +
-                        "FROM person LIMIT :limit OFFSET :offset",
+                String.format("SELECT id, first_name, last_name, email, phone, date_of_birth, occupation, important " +
+                        "FROM person %s LIMIT :limit OFFSET :offset", buildSortString(query)),
                 parameterSource,
                 personDtoRowMapper).stream();
     }
@@ -98,10 +100,42 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
             personDTO.setLastName(rs.getString(3));
             personDTO.setEmail(rs.getString(4));
             personDTO.setPhone(rs.getString(5));
-            personDTO.setDateOfBirth(rs.getDate(6).toLocalDate());
+            personDTO.setDateOfBirth(Optional.ofNullable(rs.getDate(6)).map(Date::toLocalDate).orElse(null));
             personDTO.setOccupation(rs.getString(7));
             personDTO.setImportant(rs.getBoolean(8));
             return personDTO;
         }
+    }
+
+    private String buildSortString(Query<?, ?> query) {
+        if (query.getSortOrders().isEmpty()) {
+            return "";
+        }
+        return "ORDER BY " + query.getSortOrders().stream().map(sortOrder -> {
+            String column;
+            switch (sortOrder.getSorted()) {
+                case "firstName":
+                    column = "first_name";
+                    break;
+                case "lastName":
+                    column = "last_name";
+                    break;
+                case "email":
+                    column = "email";
+                    break;
+                case "phone":
+                    column = "phone";
+                    break;
+                case "dateOfBirth":
+                    column = "date_of_birth";
+                    break;
+                case "occupation":
+                    column = "occupation";
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unknown property to sort by: " + sortOrder.getSorted());
+            }
+            return String.format("%s %s", column, sortOrder.getDirection() == SortDirection.ASCENDING ? "asc" : "desc");
+        }).collect(Collectors.joining(", "));
     }
 }

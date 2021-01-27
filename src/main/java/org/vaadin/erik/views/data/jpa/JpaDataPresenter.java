@@ -1,6 +1,8 @@
 package org.vaadin.erik.views.data.jpa;
 
 import com.vaadin.flow.data.provider.Query;
+import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.SortDirection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -9,10 +11,13 @@ import org.vaadin.erik.views.data.DataPresenter;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -38,6 +43,12 @@ public class JpaDataPresenter implements DataPresenter<Person> {
         CriteriaQuery<Person> cq = cb.createQuery(Person.class);
         Root<Person> root = cq.from(Person.class);
         cq.select(root);
+        cq.orderBy(query.getSortOrders().stream().map(sortOrder -> {
+            Path<?> path = root.get(sortOrder.getSorted());
+            return sortOrder.getDirection() == SortDirection.ASCENDING ?
+                    cb.asc(path) : cb.desc(path);
+        }).collect(Collectors.toList()));
+
         return em.createQuery(cq)
                 .setFirstResult(query.getOffset())
                 .setMaxResults(query.getLimit())

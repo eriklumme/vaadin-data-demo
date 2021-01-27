@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.vaadin.erik.data.generated.jooq.public_.tables.Person;
 import org.vaadin.erik.data.generated.jooq.public_.tables.records.PersonRecord;
 import org.vaadin.erik.views.data.DataPresenter;
+import org.vaadin.erik.views.data.JooqUtils;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -27,6 +28,7 @@ public class JooqRecordDataPresenter implements DataPresenter<PersonRecord> {
     @Override
     public Stream<PersonRecord> fetch(Query<PersonRecord, Void> query) {
         return dslContext.selectFrom(Person.PERSON)
+                .orderBy(JooqUtils.toOrderFields(query))
                 .offset(query.getOffset())
                 .limit(query.getLimit())
                 .fetchStream();
