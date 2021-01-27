@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.ForeignKey;
+import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Row8;
@@ -50,7 +51,7 @@ public class Person extends TableImpl<PersonRecord> {
     /**
      * The column <code>PUBLIC.PERSON.ID</code>.
      */
-    public final TableField<PersonRecord, Integer> ID = createField(DSL.name("ID"), SQLDataType.INTEGER.nullable(false), this, "");
+    public final TableField<PersonRecord, Integer> ID = createField(DSL.name("ID"), SQLDataType.INTEGER.nullable(false).identity(true), this, "");
 
     /**
      * The column <code>PUBLIC.PERSON.DATE_OF_BIRTH</code>.
@@ -123,6 +124,11 @@ public class Person extends TableImpl<PersonRecord> {
     @Override
     public Schema getSchema() {
         return Public.PUBLIC;
+    }
+
+    @Override
+    public Identity<PersonRecord, Integer> getIdentity() {
+        return (Identity<PersonRecord, Integer>) super.getIdentity();
     }
 
     @Override
