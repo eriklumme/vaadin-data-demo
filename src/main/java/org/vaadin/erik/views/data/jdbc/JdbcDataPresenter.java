@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.vaadin.erik.data.dto.PersonDTO;
 import org.vaadin.erik.views.data.DataPresenter;
 
+import javax.persistence.OptimisticLockException;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,7 +39,7 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
                 .addValue("offset", query.getOffset())
                 .addValue("limit", query.getLimit());
         return jdbcTemplate.query(
-                String.format("SELECT id, first_name, last_name, email, phone, date_of_birth, occupation, important " +
+                String.format("SELECT id, first_name, last_name, email, phone, date_of_birth, occupation, important, version " +
                         "FROM person %s LIMIT :limit OFFSET :offset", buildSortString(query)),
                 parameterSource,
                 personDtoRowMapper).stream();
@@ -49,7 +50,7 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("id", person.getId());
         return jdbcTemplate.queryForStream(
-                "SELECT id, first_name, last_name, email, phone, date_of_birth, occupation, important " +
+                "SELECT id, first_name, last_name, email, phone, date_of_birth, occupation, important, version " +
                         "FROM person WHERE id = :id",
                 parameterSource,
                 personDtoRowMapper).findFirst();
@@ -65,18 +66,24 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
                 .addValue("phone", person.getPhone())
                 .addValue("dateOfBirth", person.getDateOfBirth())
                 .addValue("occupation", person.getOccupation())
-                .addValue("important", person.isImportant());
+                .addValue("important", person.isImportant())
+                .addValue("version", person.getVersion());
         if (person.getId() == null) {
             jdbcTemplate.update(
                     "INSERT INTO person (first_name, last_name, email, phone, date_of_birth, occupation, important) " +
                             "VALUES (:firstName, :lastName, :email, :phone, :dateOfBirth, :occupation, :important)",
                     parameterSource);
         } else {
-            jdbcTemplate.update(
+            int rowsAffected = jdbcTemplate.update(
                     "UPDATE person " +
                             "SET first_name = :firstName, last_name = :lastName, email = :email, phone = :phone, " +
-                            "date_of_birth = :dateOfBirth, occupation = :occupation, important = :important " +
-                            "WHERE id = :id", parameterSource);
+                            "date_of_birth = :dateOfBirth, occupation = :occupation, important = :important, " +
+                            "version = version + 1 " +
+                            "WHERE id = :id AND version = :version", parameterSource);
+            if (rowsAffected == 0) {
+                // Technically it could also be removed, but I think this is good enough
+                throw new OptimisticLockException();
+            }
         }
     }
 
@@ -103,6 +110,7 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
             personDTO.setDateOfBirth(Optional.ofNullable(rs.getDate(6)).map(Date::toLocalDate).orElse(null));
             personDTO.setOccupation(rs.getString(7));
             personDTO.setImportant(rs.getBoolean(8));
+            personDTO.setVersion(rs.getInt(9));
             return personDTO;
         }
     }

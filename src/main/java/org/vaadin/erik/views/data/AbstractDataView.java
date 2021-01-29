@@ -12,6 +12,7 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -19,8 +20,10 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.router.Route;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.vaadin.erik.views.main.MainView;
 
+import javax.persistence.OptimisticLockException;
 import java.util.Optional;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -34,6 +37,7 @@ public abstract class AbstractDataView<T> extends Div {
     private final Button save = new Button("Save");
 
     private final BeanValidationBinder<T> binder;
+    private final DataPresenter<T> presenter;
 
     private T person;
     private TextField firstName;
@@ -45,6 +49,7 @@ public abstract class AbstractDataView<T> extends Div {
     private Checkbox important;
 
     public AbstractDataView(DataPresenter<T> presenter) {
+        this.presenter = presenter;
         grid = new Grid<>(presenter.getImplementationClass(), false);
 
         setId("data-view");
@@ -76,13 +81,7 @@ public abstract class AbstractDataView<T> extends Div {
         // when a row is selected or deselected, populate form
         grid.asSingleSelect().addValueChangeListener(event -> {
             if (event.getValue() != null) {
-                Optional<T> personFromBackend = presenter.reload(event.getValue());
-                // when a row is selected but the data is no longer available, refresh grid
-                if (personFromBackend.isPresent()) {
-                    populateForm(personFromBackend.get());
-                } else {
-                    refreshGrid();
-                }
+                reloadPerson(event.getValue());
             } else {
                 clearForm();
             }
@@ -107,15 +106,35 @@ public abstract class AbstractDataView<T> extends Div {
                 }
                 binder.writeBean(this.person);
 
-                presenter.updateOrInsert(this.person);
-                clearForm();
-                refreshGrid();
-                Notification.show("Person details stored.");
+                try {
+                    presenter.updateOrInsert(this.person);
+                    clearForm();
+                    refreshGrid();
+                    Notification.show("Person details stored.", 3000, Notification.Position.MIDDLE);
+                } catch (OptimisticLockException rollbackException) {
+                    reloadPerson(this.person);
+                    Notification notification = new Notification(
+                            "The person has been edited elsewhere. " +
+                                    "It has been reloaded, and there's nothing you can do about it",
+                            3000, Notification.Position.MIDDLE);
+                    notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+                    notification.open();
+                }
             } catch (ValidationException validationException) {
                 Notification.show("An exception happened while trying to store the person details.");
             }
         });
 
+    }
+
+    private void reloadPerson(T person) {
+        Optional<T> personFromBackend = presenter.reload(person);
+        // when a row is selected but the data is no longer available, refresh grid
+        if (personFromBackend.isPresent()) {
+            populateForm(personFromBackend.get());
+        } else {
+            refreshGrid();
+        }
     }
 
     private void createEditorLayout(SplitLayout splitLayout) {

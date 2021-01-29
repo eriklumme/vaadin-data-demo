@@ -3,11 +3,13 @@ package org.vaadin.erik.views.data.repository;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.spring.data.VaadinSpringDataHelpers;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.vaadin.erik.data.entity.Person;
 import org.vaadin.erik.data.service.PersonService;
 import org.vaadin.erik.views.data.DataPresenter;
 
+import javax.persistence.OptimisticLockException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -39,7 +41,12 @@ public class RepositoryDataPresenter implements DataPresenter<Person> {
 
     @Override
     public void updateOrInsert(Person person) {
-        personService.update(person);
+        try {
+            personService.update(person);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new OptimisticLockException(e);
+        }
+
     }
 
     @Override

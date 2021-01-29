@@ -1,6 +1,7 @@
 package org.vaadin.erik.data.entity;
 
 import javax.persistence.Entity;
+import javax.persistence.Version;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -20,5 +21,6 @@ public class Person extends AbstractEntity {
     private LocalDate dateOfBirth;
     private String occupation;
     private boolean important;
-
+    @Version
+    private Integer version;
 }

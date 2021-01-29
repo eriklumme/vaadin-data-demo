@@ -2,12 +2,14 @@ package org.vaadin.erik.views.data.jooqdto;
 
 import com.vaadin.flow.data.provider.Query;
 import org.jooq.DSLContext;
+import org.jooq.exception.DataChangedException;
 import org.springframework.stereotype.Service;
 import org.vaadin.erik.data.dto.PersonDTO;
 import org.vaadin.erik.data.generated.jooq.public_.tables.Person;
 import org.vaadin.erik.views.data.DataPresenter;
 import org.vaadin.erik.views.data.JooqUtils;
 
+import javax.persistence.OptimisticLockException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -48,7 +50,11 @@ public class JooqDTODataPresenter implements DataPresenter<PersonDTO> {
         if (person.getId() == null) {
             dslContext.newRecord(Person.PERSON, person).insert();
         } else {
-            dslContext.newRecord(Person.PERSON, person).update();
+            try {
+                dslContext.newRecord(Person.PERSON, person).update();
+            } catch (DataChangedException e) {
+                throw new OptimisticLockException(e);
+            }
         }
     }
 

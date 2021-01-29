@@ -17,4 +17,5 @@ public class PersonDTO {
     private LocalDate dateOfBirth;
     private String occupation;
     private boolean important;
+    private Integer version;
 }

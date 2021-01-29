@@ -19,3 +19,6 @@ drivers/
 error-screenshots/
 webpack.generated.js
 /data/
+
+# JRebel
+/jrebel-classpath-*.jar

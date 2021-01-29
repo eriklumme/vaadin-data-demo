@@ -1,7 +1,6 @@
 package org.vaadin.erik.views.data.jpa;
 
 import com.vaadin.flow.data.provider.Query;
-import com.vaadin.flow.data.provider.QuerySortOrder;
 import com.vaadin.flow.data.provider.SortDirection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -11,7 +10,6 @@ import org.vaadin.erik.views.data.DataPresenter;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Path;
@@ -61,7 +59,7 @@ public class JpaDataPresenter implements DataPresenter<Person> {
     }
 
     @Override
-    public void updateOrInsert(Person person) {
+    public void updateOrInsert(Person person){
         transactionTemplate.executeWithoutResult(status -> em.merge(person));
     }
 

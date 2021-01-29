@@ -275,6 +275,9 @@
                                             <packageName>org.vaadin.erik.data.generated.jooq</packageName>
                                             <directory>src/main/java/</directory>
                                         </target>
+                                        <database>
+                                            <recordVersionFields>VERSION</recordVersionFields>
+                                        </database>
                                     </generator>
                                 </configuration>
                             </execution>
