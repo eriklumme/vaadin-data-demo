@@ -5,6 +5,7 @@ package org.vaadin.erik.data.generated.jooq.public_;
 
 
 import org.vaadin.erik.data.generated.jooq.public_.tables.Person;
+import org.vaadin.erik.data.generated.jooq.public_.tables.Phone;
 
 
 /**
@@ -17,4 +18,9 @@ public class Tables {
      * The table <code>PUBLIC.PERSON</code>.
      */
     public static final Person PERSON = Person.PERSON;
+
+    /**
+     * The table <code>PUBLIC.PHONE</code>.
+     */
+    public static final Phone PHONE = Phone.PHONE;
 }

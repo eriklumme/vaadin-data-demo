@@ -4,12 +4,15 @@
 package org.vaadin.erik.data.generated.jooq.public_;
 
 
+import org.jooq.ForeignKey;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
 import org.jooq.impl.Internal;
 import org.vaadin.erik.data.generated.jooq.public_.tables.Person;
+import org.vaadin.erik.data.generated.jooq.public_.tables.Phone;
 import org.vaadin.erik.data.generated.jooq.public_.tables.records.PersonRecord;
+import org.vaadin.erik.data.generated.jooq.public_.tables.records.PhoneRecord;
 
 
 /**
@@ -24,4 +27,11 @@ public class Keys {
     // -------------------------------------------------------------------------
 
     public static final UniqueKey<PersonRecord> CONSTRAINT_8 = Internal.createUniqueKey(Person.PERSON, DSL.name("CONSTRAINT_8"), new TableField[] { Person.PERSON.ID }, true);
+    public static final UniqueKey<PhoneRecord> CONSTRAINT_4 = Internal.createUniqueKey(Phone.PHONE, DSL.name("CONSTRAINT_4"), new TableField[] { Phone.PHONE.ID }, true);
+
+    // -------------------------------------------------------------------------
+    // FOREIGN KEY definitions
+    // -------------------------------------------------------------------------
+
+    public static final ForeignKey<PhoneRecord, PersonRecord> FKKK6UIJ3J6WIKPNQLJ9DYMOBS9 = Internal.createForeignKey(Phone.PHONE, DSL.name("FKKK6UIJ3J6WIKPNQLJ9DYMOBS9"), new TableField[] { Phone.PHONE.PERSON_ID }, Keys.CONSTRAINT_8, new TableField[] { Person.PERSON.ID }, true);
 }

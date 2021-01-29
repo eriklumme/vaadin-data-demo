@@ -3,23 +3,32 @@ package org.vaadin.erik.views.data;
 import com.vaadin.flow.data.provider.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface DataPresenter<T> {
+public interface DataPresenter<PERSON, PHONE> {
 
-    Class<T> getImplementationClass();
-
-    @Transactional(readOnly = true)
-    Stream<T> fetch(Query<T, Void> query);
+    Class<PERSON> getImplementationClass();
 
     @Transactional(readOnly = true)
-    Optional<T> reload(T person);
+    Stream<PERSON> fetch(Query<PERSON, Void> query);
+
+    @Transactional(readOnly = true)
+    Optional<PERSON> reload(PERSON person);
 
     @Transactional
-    void updateOrInsert(T person);
+    void updateOrInsert(PERSON person);
 
-    T instantiateEmpty();
+    PERSON instantiateEmpty();
 
-    boolean isImportant(T person);
+    boolean isImportant(PERSON person);
+
+    List<PHONE> getPhones(PERSON person);
+
+    void setPhones(PERSON person, List<PHONE> phones);
+
+    PHONE createPhone(String phone);
+
+    String getPhoneString(PHONE phone);
 }

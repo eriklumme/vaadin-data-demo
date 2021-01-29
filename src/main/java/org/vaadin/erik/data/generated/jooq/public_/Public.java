@@ -13,6 +13,7 @@ import org.jooq.Table;
 import org.jooq.impl.SchemaImpl;
 import org.vaadin.erik.data.generated.jooq.DefaultCatalog;
 import org.vaadin.erik.data.generated.jooq.public_.tables.Person;
+import org.vaadin.erik.data.generated.jooq.public_.tables.Phone;
 
 
 /**
@@ -32,6 +33,11 @@ public class Public extends SchemaImpl {
      * The table <code>PUBLIC.PERSON</code>.
      */
     public final Person PERSON = Person.PERSON;
+
+    /**
+     * The table <code>PUBLIC.PHONE</code>.
+     */
+    public final Phone PHONE = Phone.PHONE;
 
     /**
      * No further instances allowed
@@ -55,6 +61,7 @@ public class Public extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.<Table<?>>asList(
-            Person.PERSON);
+            Person.PERSON,
+            Phone.PHONE);
     }
 }

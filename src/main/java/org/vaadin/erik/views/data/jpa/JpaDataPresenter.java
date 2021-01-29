@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.vaadin.erik.data.entity.Person;
+import org.vaadin.erik.data.entity.Phone;
 import org.vaadin.erik.views.data.DataPresenter;
 
 import javax.persistence.EntityManager;
@@ -14,12 +15,13 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class JpaDataPresenter implements DataPresenter<Person> {
+public class JpaDataPresenter implements DataPresenter<Person, Phone> {
 
     private final TransactionTemplate transactionTemplate;
 
@@ -71,5 +73,27 @@ public class JpaDataPresenter implements DataPresenter<Person> {
     @Override
     public boolean isImportant(Person person) {
         return person.isImportant();
+    }
+
+    @Override
+    public List<Phone> getPhones(Person person) {
+        return person.getPhones();
+    }
+
+    @Override
+    public void setPhones(Person person, List<Phone> phones) {
+        person.setPhones(phones);
+    }
+
+    @Override
+    public Phone createPhone(String phone) {
+        Phone phoneEntity = new Phone();
+        phoneEntity.setPhone(phone);
+        return phoneEntity;
+    }
+
+    @Override
+    public String getPhoneString(Phone phone) {
+        return phone.getPhone();
     }
 }

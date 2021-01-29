@@ -6,15 +6,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.vaadin.erik.data.entity.Person;
+import org.vaadin.erik.data.entity.Phone;
 import org.vaadin.erik.data.service.PersonService;
 import org.vaadin.erik.views.data.DataPresenter;
 
 import javax.persistence.OptimisticLockException;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
-public class RepositoryDataPresenter implements DataPresenter<Person> {
+public class RepositoryDataPresenter implements DataPresenter<Person, Phone> {
 
     private final PersonService personService;
 
@@ -46,7 +48,6 @@ public class RepositoryDataPresenter implements DataPresenter<Person> {
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new OptimisticLockException(e);
         }
-
     }
 
     @Override
@@ -59,4 +60,25 @@ public class RepositoryDataPresenter implements DataPresenter<Person> {
         return person.isImportant();
     }
 
+    @Override
+    public List<Phone> getPhones(Person person) {
+        return person.getPhones();
+    }
+
+    @Override
+    public void setPhones(Person person, List<Phone> phones) {
+        person.setPhones(phones);
+    }
+
+    @Override
+    public Phone createPhone(String phone) {
+        Phone phoneEntity = new Phone();
+        phoneEntity.setPhone(phone);
+        return phoneEntity;
+    }
+
+    @Override
+    public String getPhoneString(Phone phone) {
+        return phone.getPhone();
+    }
 }

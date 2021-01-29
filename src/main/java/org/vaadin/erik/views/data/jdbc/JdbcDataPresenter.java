@@ -8,21 +8,24 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Service;
 import org.vaadin.erik.data.dto.PersonDTO;
+import org.vaadin.erik.data.dto.PhoneDTO;
 import org.vaadin.erik.views.data.DataPresenter;
 
 import javax.persistence.OptimisticLockException;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
-public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
+public class JdbcDataPresenter implements DataPresenter<PersonDTO, PhoneDTO> {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final PersonDTORowMapper personDtoRowMapper = new PersonDTORowMapper();
+    private final PhoneDTORowMapper phoneDTORowMapper = new PhoneDTORowMapper();
 
     public JdbcDataPresenter(NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -38,22 +41,42 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("offset", query.getOffset())
                 .addValue("limit", query.getLimit());
-        return jdbcTemplate.query(
-                String.format("SELECT id, first_name, last_name, email, phone, date_of_birth, occupation, important, version " +
+        List<PersonDTO> persons = jdbcTemplate.query(
+                String.format("SELECT id, first_name, last_name, email, date_of_birth, occupation, important, version " +
                         "FROM person %s LIMIT :limit OFFSET :offset", buildSortString(query)),
                 parameterSource,
-                personDtoRowMapper).stream();
+                personDtoRowMapper);
+
+        parameterSource = new MapSqlParameterSource()
+                .addValue("personIds", persons.stream().map(PersonDTO::getId).collect(Collectors.toList()));
+        List<PhoneDTO> phones = jdbcTemplate.query("SELECT id, phone, person_id FROM phone WHERE person_id IN (:personIds)",
+                parameterSource,
+                phoneDTORowMapper);
+
+        return persons.stream().peek(person -> person.setPhones(
+                phones.stream()
+                        .filter(phone -> phone.getPersonId().equals(person.getId()))
+                        .collect(Collectors.toList()))
+        );
     }
 
     @Override
     public Optional<PersonDTO> reload(PersonDTO person) {
         SqlParameterSource parameterSource = new MapSqlParameterSource()
                 .addValue("id", person.getId());
-        return jdbcTemplate.queryForStream(
-                "SELECT id, first_name, last_name, email, phone, date_of_birth, occupation, important, version " +
+        Optional<PersonDTO> personDTO = jdbcTemplate.queryForStream(
+                "SELECT id, first_name, last_name, email, date_of_birth, occupation, important, version " +
                         "FROM person WHERE id = :id",
                 parameterSource,
                 personDtoRowMapper).findFirst();
+
+        return personDTO.map(p -> {
+            List<PhoneDTO> phones = jdbcTemplate.query("SELECT id, phone, person_id FROM phone WHERE person_id = :id",
+                    parameterSource,
+                    phoneDTORowMapper);
+            p.setPhones(phones);
+            return p;
+        });
     }
 
     @Override
@@ -63,20 +86,19 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
                 .addValue("firstName", person.getFirstName())
                 .addValue("lastName", person.getLastName())
                 .addValue("email", person.getEmail())
-                .addValue("phone", person.getPhone())
                 .addValue("dateOfBirth", person.getDateOfBirth())
                 .addValue("occupation", person.getOccupation())
                 .addValue("important", person.isImportant())
                 .addValue("version", person.getVersion());
         if (person.getId() == null) {
             jdbcTemplate.update(
-                    "INSERT INTO person (first_name, last_name, email, phone, date_of_birth, occupation, important) " +
-                            "VALUES (:firstName, :lastName, :email, :phone, :dateOfBirth, :occupation, :important)",
+                    "INSERT INTO person (first_name, last_name, email, date_of_birth, occupation, important) " +
+                            "VALUES (:firstName, :lastName, :email, :dateOfBirth, :occupation, :important)",
                     parameterSource);
         } else {
             int rowsAffected = jdbcTemplate.update(
                     "UPDATE person " +
-                            "SET first_name = :firstName, last_name = :lastName, email = :email, phone = :phone, " +
+                            "SET first_name = :firstName, last_name = :lastName, email = :email, " +
                             "date_of_birth = :dateOfBirth, occupation = :occupation, important = :important, " +
                             "version = version + 1 " +
                             "WHERE id = :id AND version = :version", parameterSource);
@@ -97,6 +119,28 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
         return person.isImportant();
     }
 
+    @Override
+    public List<PhoneDTO> getPhones(PersonDTO person) {
+        return person.getPhones();
+    }
+
+    @Override
+    public void setPhones(PersonDTO personDTO, List<PhoneDTO> phoneDTOS) {
+        personDTO.setPhones(phoneDTOS);
+    }
+
+    @Override
+    public PhoneDTO createPhone(String phone) {
+        PhoneDTO phoneDTO = new PhoneDTO();
+        phoneDTO.setPhone(phone);
+        return phoneDTO;
+    }
+
+    @Override
+    public String getPhoneString(PhoneDTO phoneDTO) {
+        return phoneDTO.getPhone();
+    }
+
     static class PersonDTORowMapper implements RowMapper<PersonDTO> {
 
         @Override
@@ -106,12 +150,23 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
             personDTO.setFirstName(rs.getString(2));
             personDTO.setLastName(rs.getString(3));
             personDTO.setEmail(rs.getString(4));
-            personDTO.setPhone(rs.getString(5));
-            personDTO.setDateOfBirth(Optional.ofNullable(rs.getDate(6)).map(Date::toLocalDate).orElse(null));
-            personDTO.setOccupation(rs.getString(7));
-            personDTO.setImportant(rs.getBoolean(8));
-            personDTO.setVersion(rs.getInt(9));
+            personDTO.setDateOfBirth(Optional.ofNullable(rs.getDate(5)).map(Date::toLocalDate).orElse(null));
+            personDTO.setOccupation(rs.getString(6));
+            personDTO.setImportant(rs.getBoolean(7));
+            personDTO.setVersion(rs.getInt(8));
             return personDTO;
+        }
+    }
+
+    static class PhoneDTORowMapper implements RowMapper<PhoneDTO> {
+
+        @Override
+        public PhoneDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
+            PhoneDTO phoneDTO = new PhoneDTO();
+            phoneDTO.setId(rs.getInt(1));
+            phoneDTO.setPhone(rs.getString(2));
+            phoneDTO.setPersonId(rs.getInt(3));
+            return phoneDTO;
         }
     }
 
@@ -130,9 +185,6 @@ public class JdbcDataPresenter implements DataPresenter<PersonDTO> {
                     break;
                 case "email":
                     column = "email";
-                    break;
-                case "phone":
-                    column = "phone";
                     break;
                 case "dateOfBirth":
                     column = "date_of_birth";

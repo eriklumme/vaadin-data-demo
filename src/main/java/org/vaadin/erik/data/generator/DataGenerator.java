@@ -2,6 +2,7 @@ package org.vaadin.erik.data.generator;
 
 import com.vaadin.flow.spring.annotation.SpringComponent;
 
+import org.vaadin.erik.data.entity.Phone;
 import org.vaadin.erik.data.service.PersonRepository;
 import org.vaadin.erik.data.entity.Person;
 
@@ -36,7 +37,11 @@ public class DataGenerator {
             personRepositoryGenerator.setData(Person::setFirstName, DataType.FIRST_NAME);
             personRepositoryGenerator.setData(Person::setLastName, DataType.LAST_NAME);
             personRepositoryGenerator.setData(Person::setEmail, DataType.EMAIL);
-            personRepositoryGenerator.setData(Person::setPhone, DataType.PHONE_NUMBER);
+            personRepositoryGenerator.setData((person, phoneNumber) -> {
+                Phone phone = new Phone();
+                phone.setPhone(phoneNumber);
+                person.getPhones().add(phone);
+            }, DataType.PHONE_NUMBER);
             personRepositoryGenerator.setData(Person::setDateOfBirth, DataType.DATE_OF_BIRTH);
             personRepositoryGenerator.setData(Person::setOccupation, DataType.OCCUPATION);
             personRepositoryGenerator.setData(Person::setImportant, DataType.BOOLEAN_10_90);

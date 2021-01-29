@@ -1,4 +1,4 @@
-package org.vaadin.erik.views.data;
+package org.vaadin.erik.utils;
 
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
@@ -20,8 +20,6 @@ public class JooqUtils {
                     return toOrderField(sortOrder, PERSON.LAST_NAME);
                 case "email":
                     return toOrderField(sortOrder, PERSON.EMAIL);
-                case "phone":
-                    return toOrderField(sortOrder, PERSON.PHONE);
                 case "dateOfBirth":
                     return toOrderField(sortOrder, PERSON.DATE_OF_BIRTH);
                 case "occupation":

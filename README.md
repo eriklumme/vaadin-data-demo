@@ -6,7 +6,7 @@ Start the application either by running `org.vaadin.erik.Application` in your ID
 
 # The data views
 
-Each data view implements the master-detail view in a different way. The should all support the same functinality, which is:
+Every data view implements the master-detail view in a different way. The should all support the same functinality, which is:
 * List persons
 * Sort  persons
 * Insert a new person

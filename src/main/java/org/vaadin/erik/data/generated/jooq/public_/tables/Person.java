@@ -13,7 +13,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row9;
+import org.jooq.Row8;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -82,11 +82,6 @@ public class Person extends TableImpl<PersonRecord> {
      * The column <code>PUBLIC.PERSON.OCCUPATION</code>.
      */
     public final TableField<PersonRecord, String> OCCUPATION = createField(DSL.name("OCCUPATION"), SQLDataType.VARCHAR(255), this, "");
-
-    /**
-     * The column <code>PUBLIC.PERSON.PHONE</code>.
-     */
-    public final TableField<PersonRecord, String> PHONE = createField(DSL.name("PHONE"), SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>PUBLIC.PERSON.VERSION</code>.
@@ -178,11 +173,11 @@ public class Person extends TableImpl<PersonRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row9 type methods
+    // Row8 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row9<Integer, LocalDate, String, String, Boolean, String, String, String, Integer> fieldsRow() {
-        return (Row9) super.fieldsRow();
+    public Row8<Integer, LocalDate, String, String, Boolean, String, String, Integer> fieldsRow() {
+        return (Row8) super.fieldsRow();
     }
 }

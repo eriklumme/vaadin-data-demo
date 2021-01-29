@@ -20,35 +20,36 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.router.Route;
-import org.springframework.transaction.UnexpectedRollbackException;
+import org.vaadin.erik.views.components.PhoneNumberList;
 import org.vaadin.erik.views.main.MainView;
 
 import javax.persistence.OptimisticLockException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("FieldCanBeLocal")
 @Route(layout = MainView.class)
 @CssImport("./styles/views/data-view.css")
-public abstract class AbstractDataView<T> extends Div {
+public abstract class AbstractDataView<PERSON, PHONE> extends Div {
 
-    private final Grid<T> grid;
+    private final Grid<PERSON> grid;
 
     private final Button cancel = new Button("Cancel");
     private final Button save = new Button("Save");
 
-    private final BeanValidationBinder<T> binder;
-    private final DataPresenter<T> presenter;
+    private final BeanValidationBinder<PERSON> binder;
+    private final DataPresenter<PERSON, PHONE> presenter;
 
-    private T person;
+    private PERSON person;
     private TextField firstName;
     private TextField lastName;
     private TextField email;
-    private TextField phone;
     private DatePicker dateOfBirth;
     private TextField occupation;
     private Checkbox important;
+    private PhoneNumberList<PHONE> phoneNumberList;
 
-    public AbstractDataView(DataPresenter<T> presenter) {
+    public AbstractDataView(DataPresenter<PERSON, PHONE> presenter) {
         this.presenter = presenter;
         grid = new Grid<>(presenter.getImplementationClass(), false);
 
@@ -66,10 +67,10 @@ public abstract class AbstractDataView<T> extends Div {
         grid.addColumn("firstName").setAutoWidth(true);
         grid.addColumn("lastName").setAutoWidth(true);
         grid.addColumn("email").setAutoWidth(true);
-        grid.addColumn("phone").setAutoWidth(true);
+        grid.addColumn(this::renderPhones).setHeader("Phones").setAutoWidth(true);
         grid.addColumn("dateOfBirth").setAutoWidth(true);
         grid.addColumn("occupation").setAutoWidth(true);
-        TemplateRenderer<T> importantRenderer = TemplateRenderer.<T>of(
+        TemplateRenderer<PERSON> importantRenderer = TemplateRenderer.<PERSON>of(
                 "<iron-icon hidden='[[!item.important]]' icon='vaadin:check' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: var(--lumo-primary-text-color);'></iron-icon><iron-icon hidden='[[item.important]]' icon='vaadin:minus' style='width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s); color: var(--lumo-disabled-text-color);'></iron-icon>")
                 .withProperty("important", presenter::isImportant);
         grid.addColumn(importantRenderer).setHeader("Important").setAutoWidth(true);
@@ -93,6 +94,7 @@ public abstract class AbstractDataView<T> extends Div {
         // Bind fields. This where you'd define e.g. validation rules
 
         binder.bindInstanceFields(this);
+        binder.forField(phoneNumberList).bind(presenter::getPhones, presenter::setPhones);
 
         cancel.addClickListener(e -> {
             clearForm();
@@ -127,8 +129,14 @@ public abstract class AbstractDataView<T> extends Div {
 
     }
 
-    private void reloadPerson(T person) {
-        Optional<T> personFromBackend = presenter.reload(person);
+    private String renderPhones(PERSON person) {
+        return presenter.getPhones(person).stream()
+                .map(presenter::getPhoneString)
+                .collect(Collectors.joining(", "));
+    }
+
+    private void reloadPerson(PERSON person) {
+        Optional<PERSON> personFromBackend = presenter.reload(person);
         // when a row is selected but the data is no longer available, refresh grid
         if (personFromBackend.isPresent()) {
             populateForm(personFromBackend.get());
@@ -149,12 +157,12 @@ public abstract class AbstractDataView<T> extends Div {
         firstName = new TextField("First Name");
         lastName = new TextField("Last Name");
         email = new TextField("Email");
-        phone = new TextField("Phone");
         dateOfBirth = new DatePicker("Date Of Birth");
         occupation = new TextField("Occupation");
         important = new Checkbox("Important");
         important.getStyle().set("padding-top", "var(--lumo-space-m)");
-        Component[] fields = new Component[]{firstName, lastName, email, phone, dateOfBirth, occupation, important};
+        phoneNumberList = new PhoneNumberList<>("Phone numbers", presenter::getPhoneString, presenter::createPhone);
+        Component[] fields = new Component[]{firstName, lastName, email, phoneNumberList, dateOfBirth, occupation, important};
 
         for (Component field : fields) {
             ((HasStyle) field).addClassName("full-width");
@@ -194,7 +202,7 @@ public abstract class AbstractDataView<T> extends Div {
         populateForm(null);
     }
 
-    private void populateForm(T value) {
+    private void populateForm(PERSON value) {
         this.person = value;
         binder.readBean(this.person);
     }
