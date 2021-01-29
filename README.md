@@ -4,6 +4,15 @@ Before starting the application, run `mvn install`.
 
 Start the application either by running `org.vaadin.erik.Application` in your IDE or by running `mvn`. 
 
+# The data views
+
+Each data view implements the master-detail view in a different way. The should all support the same functinality, which is:
+* List persons
+* Sort  persons
+* Insert a new person
+* Update an existing person
+* Throw an `OptimisticLockException` upon saving an existing entity if the version in the database is newer.
+
 ## jOOQ
 
 For your convenience, the generated jOOQ metadata is checked into the repository.
